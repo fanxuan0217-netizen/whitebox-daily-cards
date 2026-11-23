@@ -4625,17 +4625,17 @@ function ownedIds() {
 }
 
 // ---------- 海报 ----------
-// 兜底线上地址：仅在本地预览（file:// / localhost）时用于生成二维码
-const SITE_URL = "https://af6c82a7d24742d4976da017a7d2fe3c.app.workbuddy.host";
+// 兜底地址：仅在本地预览（file:// / localhost）时用于生成二维码
+const SITE_URL = "https://fanxuan0217-netizen.github.io/whitebox-daily-cards/";
 
 function shareUrl() {
-  // 线上打开时，二维码直接跟随当前完整地址（保留 sharecode 等分享参数），
-  // 保证扫码的人一定能打开；本地预览时退回兜底地址。
+  // 线上打开时，二维码直接跟随当前完整地址（保留分享码等参数），保证扫码一定能开；
+  // 本地预览时退回兜底地址。
   try {
     const loc = window.location;
     const host = loc.hostname || "";
     const local = loc.protocol === "file:" || host === "localhost" || host === "127.0.0.1";
-    if (!local && /\.workbuddy\.host$/i.test(host)) {
+    if (!local && /^https?:/.test(loc.origin)) {
       return loc.origin + loc.pathname + loc.search;
     }
   } catch (e) { /* 落到兜底 */ }
