@@ -397,17 +397,13 @@ body{
 .reveal.flippable{cursor:zoom-in}
 .reveal .flip{
   position:relative;width:100%;height:100%;
-  transform-style:preserve-3d;
-  transition:transform .78s cubic-bezier(.4,.05,.2,1);
+  transform-style:flat;
 }
-.reveal .flip.flipped{transform:rotateY(180deg)}
 .reveal .fc{
   position:absolute;inset:0;
   backface-visibility:hidden;-webkit-backface-visibility:hidden;
   display:flex;align-items:center;justify-content:center;
 }
-.reveal .fc.front{transform:none}
-.reveal .fc.back{transform:rotateY(180deg)}
 
 /* ============ 卡牌背面：详解签文 ============ */
 .detail-card{
@@ -735,6 +731,35 @@ body{
   transform-style:preserve-3d;
   will-change:transform;
 }
+/* ============ 翻面：两面各自独立翻转，不靠背面剔除 ============ */
+/* iOS Safari 在多层 preserve-3d 嵌套（perspective→tiltbox→flip→fc）下
+   backface-visibility 会失效，翻转途中正反两面同时可见、且背面字是反的。
+   改法：不再让容器转到背面，两个面各自在原地转半圈——
+   正面 0°→180°、背面 180°→360°，过 90° 前各自缩成零宽，
+   谁都照不到对方的背面，纯几何规避，跟浏览器实现无关。
+   tiltbox 里的 3D 倾斜继续保留（箔光要随指针转），
+   但它只负责倾斜，不参与正反面的遮挡判定。 */
+.reveal .flip{
+  transform-style:flat;
+  transition:none;
+}
+.reveal .flip.flipped{transform:none}
+.reveal .fc{
+  transform-style:flat;
+  backface-visibility:hidden;-webkit-backface-visibility:hidden;
+  transition:transform .78s cubic-bezier(.4,.05,.2,1);
+  will-change:transform;
+}
+/* 两面的基准角度：静止时 front=0°、back=180°（背面那层在模板里本来就带 180°）。
+   翻到背面时 front→180°、back→360°。
+   要点：这里只让两个面各自原地转半圈，绝不能让 back 再叠一个 180°——
+   两个 180 会互相抵消，卡片根本不会转到正面来，只看得到「反着印的背面」。 */
+.reveal .fc.front{transform:rotateY(0deg)}
+.reveal .fc.back{transform:rotateY(180deg)}
+.reveal .flip.flipped .fc.front{transform:rotateY(180deg)}
+.reveal .flip.flipped .fc.back{transform:rotateY(360deg)}
+/* 翻到背面时卡牌放大（原来靠 .zoomed，这里只保证不叠加多余 3D） */
+.reveal.zoomed .tiltbox{transform-style:flat}
 /* 大图弹窗同样给透视，倾斜才有厚度 */
 #zoomBody{perspective:900px}
 .zoom-card{will-change:transform}
